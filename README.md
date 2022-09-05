@@ -1,2 +1,2 @@
 # Altschool-Demo
-Just a Demo, nothing serious.
+This is a journal to document my progress with AltSchool Cloud.
