@@ -1,2 +1,2 @@
 # Altschool-Demo
-This is a journal to document my progress with AltSchool Cloud.
+This is a Repo to document the tasks i have done in AltSchool Cloud.
