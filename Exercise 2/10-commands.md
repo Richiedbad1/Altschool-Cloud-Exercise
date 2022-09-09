@@ -61,10 +61,10 @@
 
  ## **history:** The `history` command is used to check all prior commands that have been inputed on the terminal.  
  ### Type in:  
-![history](../images/hist.png)
+ ![history](../images/history%20output.png)
 
 ### And it presents the following output:  
-![history output](../images/history%20output.png)  
+![history Output](../images/his.png) 
 
  ## **Exit:** The `Exit` command is used to log out of the terminal. 
  ### Type in:  
