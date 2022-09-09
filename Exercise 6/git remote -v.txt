@@ -1,2 +1,0 @@
-origin  https://github.com/Richiedbad1/Altschool-Cloud-Exercises1.git (fetch)
-origin  https://github.com/Richiedbad1/Altschool-Cloud-Exercises1.git (push)
