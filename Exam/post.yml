@@ -1,0 +1,4 @@
+- name: Script to install PostgreSQL
+  ansible.builtin.script: /home/vagrant/postgres.sh
+    args:
+      chdir: /home/admin

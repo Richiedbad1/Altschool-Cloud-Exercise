@@ -1,0 +1,199 @@
+---
+
+- hosts: all
+  become: true
+  tasks:
+
+    - name: Set  Hostname
+      ansible.builtin.hostname:
+        name: server.richardbadmus.me
+
+
+    - name: Set Timezone to Africa/Lagos
+      timezone:
+        name: Africa/Lagos
+
+    - name: Install Apache, PHP and dependencies
+      apt:
+        name:
+          - apache2
+          - libapache2-mod-php
+          - php-mysql
+          - curl
+          - php-curl
+          - git
+          - zip
+          - unzip
+          - php8.1-cli
+          - php-curl
+          - php-xml
+          - ufw
+        update_cache: yes
+        state: latest
+
+
+    - name: Allow Everything and Enable UFW
+      ufw:
+        state: enabled
+        policy: allow
+
+    - name: Set UFW log on
+      ufw:
+        logging: 'on'
+
+    - ufw:
+        rule: allow
+        name: OpenSSH
+
+    - name: Restart UFW
+      service:
+        name: ufw
+        state: restarted
+
+    - name: Install MySQL Server and its dependencies
+      tags: test
+      apt:
+        name:
+          - libmysqlclient-dev
+          - mysql-server
+          - mysql-client
+          - pip
+
+    - name: Install PymySQL using pip
+      pip:
+        name: pymysql
+        state: present
+
+    - name: Start MySQL service
+      ansible.builtin.service:
+
+    - name: Remove anonymous user account for localhost
+      community.mysql.mysql_user:
+        name: ''
+        host: localhost
+        state: absent
+        login_unix_socket: /run/mysqld/mysqld.sock
+
+    - name: Remove all anonymous user accounts
+      community.mysql.mysql_user:
+        name: ''
+        host_all: yes
+        state: absent
+        login_unix_socket: /run/mysqld/mysqld.sock
+
+    - name: Create database user with password and all database privileges and 'WITH GRANT OPTION'
+      community.mysql.mysql_user:
+        name: myapp
+        password: myapp
+        priv: '*.*:ALL,GRANT'
+        state: present
+        login_unix_socket: /run/mysqld/mysqld.sock
+
+
+    - name: Create a new database with name 'myapp'
+      mysql_db:
+        name: myapp
+        state: present
+        login_unix_socket: /run/mysqld/mysqld.sock
+
+    - name: Start service MySQL
+      ansible.builtin.service:
+        name: mysql.service
+        state: started
+
+    - name: install Composer
+      shell: curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+      args:
+        creates: /usr/local/bin/composer
+
+    - name: set permissions for composer file
+      file:
+        path: /usr/local/bin/composer
+        mode: a+x
+        state: file
+
+
+    - name: Clone Laravel Miniapp from git
+      git:
+        repo: https://github.com/f1amy/laravel-realworld-example-app.git
+        dest: /var/www/myapp
+
+
+    - name: Set File Permissions to www-data
+      command: sudo chmod -R 775 /var/www/myapp
+
+    - name: Set Owner and Group for 'myapp' to www-data
+      command: sudo chown -R www-data:www-data /var/www/myapp
+
+    - name: Set permissions for 'myapp' storage folder
+      command: sudo chmod -R 755 /var/www/myapp/storage
+
+    - name: Update Composer
+      composer:
+        command: update
+        working_dir: /var/www/myapp
+      environment:
+        COMPOSER_ALLOW_SUPERUSER: 1
+
+    - name: copy .env file to 'myapp'
+      copy:
+        src: files/.env
+        dest: /var/www/myapp
+        owner: www-data
+        group: www-data
+        mode: 0644
+
+
+    - name: copy htaccess file to 'myapp'
+      copy:
+        src: files/.htaccess
+        dest: /var/www/myapp
+        owner: root
+        group: root
+        mode: 644
+
+    - name: Replace web.php file in 'myapp'
+      copy:
+       src: files/web.php
+       dest: /var/www/myapp/routes/web.php
+
+
+    - name: copy apache config
+      copy:
+        src: files/myapp.conf
+        dest: /etc/apache2/sites-available/myapp.conf
+        owner: root
+        group: root
+        mode: 644
+
+    - name: enable the new config and restart apache
+      shell: |
+         a2ensite myapp.conf
+         a2dissite 000-default.conf
+         a2enmod rewrite
+         service apache2 restart
+
+    - name: composer create-project
+      composer:
+        command: create-project
+        working_dir: /var/www/myapp
+      environment:
+        COMPOSER_ALLOW_SUPERUSER: 1
+
+    - name: Generate Database key
+      shell: |
+         cd /var/www/myapp
+         php artisan key:generate
+
+    - name: Migrate Database
+      shell: |
+         cd /var/www/myapp
+         php artisan migrate
+
+    - name: Copy postgresql script into  slave machine
+      copy:
+        src: files/postgresql.sh
+        dest: /home/vagrant
+
+    - name: Run script on slave machine
+      command: bash postgresql.sh
