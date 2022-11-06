@@ -197,3 +197,4 @@
 
     - name: Run Script in Slave Machine
       command: bash postgres.sh
+
