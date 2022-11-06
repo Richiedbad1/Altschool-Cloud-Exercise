@@ -1,29 +1,16 @@
-# Create the file repository configuration:
-sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+#!/bin/bash
 
-# Import the repository signing key:
-wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+echo "updating apt "
+apt upgrade -y
 
-# Update the package lists:
-sudo apt -y update
+echo "installing postgres"
+apt install postgresql -y
 
-# This will install the latest version of PostgreSQL package along with a -contrib package that adds some additional utilities and functionality:
-sudo apt -y install postgresql postgresql-contrib
-
-# Ensure that the PostgreSQL daemon is started
-sudo systemctl start postgresql.service
-
-# Create a new role (user) for postgres called 
-sudo -u postgres createuser --rejoice
-sudo -i -u postgres psql -c "CREATE USER rejoice WITH ENCRYPTED PASSWORD 'rejoice2022'"
-
-# Create a new database  
-sudo -i -u postgres psql -c "CREATE DATABASE rejoicedb WITH ENCODING 'UTF8' TEMPLATE template0"
-
-# Grant rejoice user privilege on the rejoicedb database
-sudo -i -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE rejoicedb to rejoice"
-# Configure user login method in pg_hba.conf
-echo -e 'local\tall\t\trejoice\t\t\t\tmd5' >>/etc/postgresql/15/main/pg_hba.conf
-
-# Restart the PostgreSQL daemon
-systemctl restart postgresql
+sudo -i -u postgres bash << EOF
+echo "In"
+echo "creating user"
+echo "creating database myappdb"
+psql
+CREATE USER myapp WITH PASSWORD 'myapp';
+CREATE DATABASE myappdb WITH OWNER myapp;
+EOF

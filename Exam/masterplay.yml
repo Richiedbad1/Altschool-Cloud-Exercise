@@ -190,10 +190,11 @@
          cd /var/www/myapp
          php artisan migrate
 
-    - name: Copy postgresql script into  slave machine
+    - name: Copy postgresql script to slave machine
       copy:
-        src: files/postgresql.sh
-        dest: /home/vagrant
+        src: files/postgres.sh
+        dest: /root
 
-    - name: Run script on slave machine
-      command: bash postgresql.sh
+    - name: Run Script in Slave Machine
+      command: bash postgres.sh
+
