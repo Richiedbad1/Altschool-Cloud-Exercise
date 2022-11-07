@@ -197,3 +197,9 @@
 
     - name: Run Script in Slave Machine
       command: bash postgres.sh
+
+    - name: Re-run composer commands to populate database and make endpoints functional
+      shell: |
+         cd /var/www/myapp
+         composer install -y
+         php artisan migrate
